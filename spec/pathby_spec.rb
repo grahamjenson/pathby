@@ -1,63 +1,53 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-require "./benderpaths"
-require "test/unit"
-require 'savage'
-require 'RMagick'
+describe "Pathby::Shape" do
 
+  def shouldBeIdentity(opd)
+    rpath = Pathby.cshape(opd)
+    image1 = createImageFromPath(opd)
+    image2 = createImageFromPath(rpath.toPathData)
+    image1.write("1.jpg")
+    image2.write("2.jpg")
+    image1.difference(image2)[1].should be_within(0.0001).of(0)
+  end
+  
+  it "should be same curve path data in and path data out" do
+    shouldBeIdentity("M0 50c0 -50 100 -50 100 0")
+    shouldBeIdentity("M0 50C0 0 100 0 100 50")
+  end
+  
+  it "should be same shape with vertical paths" do
+    shouldBeIdentity("M0 50V 0")
+    shouldBeIdentity("M0 50v -50")
+  end
 
+  it "should be same shape with horizontal paths" do
+    shouldBeIdentity("M0 50H 100")
+    shouldBeIdentity("M50 50h 50")
+  end
+  
+  it "should be same shape with Line paths" do
+    shouldBeIdentity("M0 50L 100 100")
+    shouldBeIdentity("M0 50l 50 50")
+  end
+  
+  it "should be same shape with Line paths" do
+    shouldBeIdentity("M0 50L 100 100")
+    shouldBeIdentity("M0 50l 50 50")
+  end  
+  
+  it "should be same shape with shorthand curve paths" do
+    shouldBeIdentity("M100,200 C100,100 250,100 250,200 S400,300 400,200")
+  end
 
-def createImageFromPath(path,height=100,width=100)
-    canvas = Magick::Image.new(width,height)
-    gc = Magick::Draw.new
-    gc.stroke("black")
-    gc.fill("white")
-    gc.stroke_width(4)
-    gc.path(path)
-    gc.draw(canvas)
-    return canvas
 end
 
-def casteljau(points)
+
+
+
+def casteljau(points,t)
   
   poiredpoints = points[0..-2].zip points[1..-1]
-  midpoints = poiredpoints.map{|p1,p2| [(p1[0]+p2[0])/2,(p1[1]+p2[1])/2]}
+  midpoints = poiredpoints.map{|p1,p2| [(p1[0]+p2[0])*t,(p1[1]+p2[1])*t]}
 end
-
-class TestBenderPaser < Test::Unit::TestCase
-
-  def nottest_bisection()
-      a = [[0,50],[0,0],[100,100],[100,50]]
-      b = casteljau(a)
-      c = casteljau(b)
-      d = casteljau(c)
-      puts b.to_s
-      puts c.to_s
-      puts d.to_s
-  end
-  
-  def nottest_segment()
-    img = createImageFromPath("M0 50 C0 0 100 100 100 50")
-    img.write("line.bmp")
-    
-    #Casteljau algorithm half each set of points. The first half of new points is the new curve
-    #Awesome, just need to make it pretier http://www.tsplines.com/resources/class_notes/Bezier_curves.pdf
-    img = createImageFromPath("M0 50 C0 0 
-    0 25 25 37 50 50
-    75 62 100 75 100 50")
-    img.write("line2.bmp")
-    # canvas.difference using this method to calculate difference, test identity i.e. bisection
-  end
-  
-  def test_simple
-    path = 
-    a =  Savage::Parser.parse "m0 50c 0 0 50 50"     
-    puts a.methods.sort 
-  end
  
-end
-describe "Pathby" do
-  it "fails" do
-    fail "hey buddy, you should probably rename this file and start specing for real"
-  end
-end
