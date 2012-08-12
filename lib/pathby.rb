@@ -1,4 +1,4 @@
-require "monkeypatchsavage.rb"
+require File.dirname(__FILE__) +  "/monkeypatchsavage.rb"
 
 
 module Pathby

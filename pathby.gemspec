@@ -6,6 +6,9 @@ Gem::Specification.new do |s|
   s.description = "This gem attempts to simplyfy (semantically not syntactically) SVG paths"
   s.authors     = ["Graham Jenson"]
   s.email       = 'grahamjenson@maori.geek.nz'
-  s.files       = ["lib/pathby.rb"]
+  s.files       = ["lib/transformations.rb",
+                  "lib/measurements.rb",
+                  "lib/monkeypatchsavage.rb",
+                  "lib/pathby.rb"]
   s.homepage    = 'http://maori.geek.nz/gems/pathby'
 end
