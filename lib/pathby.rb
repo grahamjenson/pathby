@@ -1,46 +1,26 @@
 require "monkeypatchsavage.rb"
 
+
 module Pathby
 
 
   Point = Struct.new(:x,:y)
   
-  Curve = Struct.new(:cp1,:cp2,:p2)
+  #P1 is intended to be a reference
+  Curve = Struct.new(:p1,:cp1,:cp2,:p2)
   
   Path = Struct.new(:p1,:curves)
   
   Shape = Struct.new(:subpaths)
   
-  class Point
-    def reflect(about = Point.new(0,0))
-      puts "#{self} , #{about}"
-      self.x = 2*about.x - x
-      self.y = 2*about.y - y
-      puts "#{self}"
-      return self
-    end
-  end 
-  
- class Savage::Directions::Point
+  require "transformations.rb"
+    
+  class Savage::Directions::Point
     def top
         return Point.new(self.x,self.y)
     end 
   end
   
-  def self.convertSavageToPathBy(d,fromp,prev)
-    if  Savage::Directions::CubicCurveTo === d && d.control_1 then 
-        return Curve.new(d.control_1.top, d.control_2.top, d.target.top)
-    elsif Savage::Directions::CubicCurveTo === d && !d.control_1 then
-        return Curve.new(prev.cp2.clone.reflect(fromp), d.control_2.top, d.target.top)
-    elsif  Savage::Directions::VerticalTo === d then
-        return Curve.new(fromp.clone, Point.new(fromp.x,d.target), Point.new(fromp.x,d.target))
-    elsif  Savage::Directions::HorizontalTo === d then
-        return Curve.new(fromp.clone, Point.new(d.target,fromp.y), Point.new(d.target,fromp.y))
-    elsif Savage::Directions::LineTo === d then
-        return Curve.new(fromp.clone, d.target.top, d.target.top)
-    else raise "This class #{d.class} is not supported yet"
-     end
-  end
   
   def self.cshape(pathdata)
     parsedpath = Savage::Parser.parse pathdata
@@ -50,8 +30,22 @@ module Pathby
       #get first Move direction point
       np = Path.new(sp.directions[0].target.top,[])
       fromp = np.p1
-      for d in sp.directions[1..-1] do
-        np.curves << self.convertSavageToPathBy(d,fromp,np.curves[-1])
+      for d in sp.directions[1..-1] do 
+        prev = np.curves[-1]
+        if  Savage::Directions::CubicCurveTo === d && d.control_1 then 
+            np.curves << Curve.new(fromp, d.control_1.top, d.control_2.top, d.target.top)
+        elsif Savage::Directions::CubicCurveTo === d && !d.control_1 then
+            np.curves << Curve.new(fromp, prev.cp2.clone.reflect(fromp), d.control_2.top, d.target.top)
+        elsif  Savage::Directions::VerticalTo === d then
+            np.curves << Curve.new(fromp, fromp.clone, Point.new(fromp.x,d.target), Point.new(fromp.x,d.target))
+        elsif  Savage::Directions::HorizontalTo === d then
+            np.curves << Curve.new(fromp, fromp.clone, Point.new(d.target,fromp.y), Point.new(d.target,fromp.y))
+        elsif Savage::Directions::LineTo === d then
+            np.curves << Curve.new(fromp, fromp.clone, d.target.top, d.target.top)
+        elsif Savage::Directions::ClosePath === d then
+            np.curves << Curve.new(fromp, fromp.clone, np.p1.clone , np.p1)
+        else raise "This class #{d.class} is not supported yet"
+        end
         fromp = np.curves[-1].p2
       end
       shape.subpaths << np
