@@ -8,4 +8,5 @@ group :development do
   gem "jeweler", "~> 1.8.4"
   gem "savage"
   gem "rmagick"
+  gem "wirble"
 end

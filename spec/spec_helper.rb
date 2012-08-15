@@ -18,7 +18,7 @@ end
 
 
 
-def createImageFromPath(path,height=400,width=400)
+def createImageFromPath(path,height=1000,width=1000)
     canvas = Magick::Image.new(width,height)
     gc = Magick::Draw.new
     gc.stroke("black")

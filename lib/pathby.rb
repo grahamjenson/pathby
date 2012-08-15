@@ -1,20 +1,21 @@
 require File.dirname(__FILE__) +  "/monkeypatchsavage.rb"
 
-
 module Pathby
 
 
   Point = Struct.new(:x,:y)
   
-  #P1 is intended to be a reference
+  #P1 is intended to be a reference to the previous surve
   Curve = Struct.new(:p1,:cp1,:cp2,:p2)
   
   Path = Struct.new(:p1,:curves)
   
   Shape = Struct.new(:subpaths)
   
-  require "transformations.rb"
-    
+  Group = Struct.new(:shapes)
+  
+  require File.dirname(__FILE__) + "/transformations.rb"
+  
   class Savage::Directions::Point
     def top
         return Point.new(self.x,self.y)
@@ -43,7 +44,7 @@ module Pathby
         elsif Savage::Directions::LineTo === d then
             np.curves << Curve.new(fromp, fromp.clone, d.target.top, d.target.top)
         elsif Savage::Directions::ClosePath === d then
-            np.curves << Curve.new(fromp, fromp.clone, np.p1.clone , np.p1)
+            np.curves << Curve.new(fromp, fromp.clone, np.p1.clone , np.p1.clone)
         else raise "This class #{d.class} is not supported yet"
         end
         fromp = np.curves[-1].p2
@@ -55,7 +56,7 @@ module Pathby
   
   class Point
     def toPathData
-      return "#{x} #{y}"
+      return "#{'%.2f' % x} #{'%.2f' % y}"
     end
   end
   
@@ -66,15 +67,31 @@ module Pathby
   end
   
   class Path
+    def allpoints
+      points = [p1]
+      curves.each {|c| points.concat([c.cp1 , c.cp2, c.p2])}
+      return points
+    end
+    
     def toPathData
       return "M#{p1.toPathData} C#{curves.map(&:toPathData).join(" ")}"
     end
   end
   
   class Shape
+    def allpoints
+      points = []
+      subpaths.each {|path| points.concat(path.allpoints)}
+      return points
+    end
+    
+    
     def toPathData
       return "#{subpaths.map(&:toPathData).join(" ")}"
     end
   end
   
 end
+
+
+

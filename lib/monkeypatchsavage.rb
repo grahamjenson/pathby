@@ -91,9 +91,10 @@ end
 class Savage::Path
   def toAbsolute
     raise "Does not start with move command" unless self.directions[0].kind_of? Savage::Directions::MoveTo 
-    raise "First move is not absolute" unless self.directions[0].absolute?
+    #raise "First move is not absolute" unless self.directions[0].absolute?
     fromp = self.directions[0].target 
     for sp in @subpaths do
+      
       fromp = sp.toAbsolute(fromp)
     end
   end
