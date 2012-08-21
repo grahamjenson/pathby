@@ -55,12 +55,20 @@ module Pathby
   end
   
   class Point
+    def allpoints
+      return [self]
+    end
+    
     def toPathData
       return "#{'%.2f' % x} #{'%.2f' % y}"
     end
   end
   
   class Curve
+    def allpoints
+      return [cp1,cp2,p2]  
+    end
+    
     def toPathData
       return "#{cp1.toPathData} #{cp2.toPathData} #{p2.toPathData}"
     end
@@ -69,7 +77,7 @@ module Pathby
   class Path
     def allpoints
       points = [p1]
-      curves.each {|c| points.concat([c.cp1 , c.cp2, c.p2])}
+      curves.each {|c| points.concat(c.allpoints)}
       return points
     end
     
