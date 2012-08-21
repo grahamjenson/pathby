@@ -41,7 +41,7 @@ module Pathby
       end
     end
     
-    def reflect(about = Point.new(0,0))
+    def reflect(about = nil)
       #rotate by 180 about 
       #translate to make rotation point 0
       r = GTransMat.gRotateMatrix(Math::PI)
@@ -49,6 +49,22 @@ module Pathby
         r = GTransMat.gCenterAtMatrix(r,about)
       end
       transform(r)
+    end
+    
+    def scale(sx,sy,about=nil)
+      s = GTransMat.gScaleMatrix(sx,sy)
+      if about
+        s = GTransMat.gCenterAtMatrix(s,about)
+      end
+      transform(s)
+    end
+    
+    def rotate(r,about=nil)
+      s = GTransMat.gRotateMatrix(r)
+      if about
+        s = GTransMat.gCenterAtMatrix(s,about)
+      end
+      transform(s)
     end
     
     def simplebbox
@@ -60,6 +76,11 @@ module Pathby
       miny = points.min{|a,b| a.y <=> b.y}.y
       puts "min  (#{minx},#{miny}) max (#{maxx},#{maxy})"
       return [Point.new(minx,miny),Point.new(maxx,maxy)]
+    end
+    
+    def center
+      min,max = simplebbox
+      return Point.new((min.x + max.x)/2,(min.y+max.y) /2)
     end
     
     def rezero
