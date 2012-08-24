@@ -7,8 +7,8 @@ describe "Pathby::Shape" do
     image1 = createImageFromPath(opd)
     #puts "#{rpath.toPathData} \ncompared \n #{opd}"
     image2 = createImageFromPath(rpath.toPathData)
-    image1.write("imageshouldbe.jpg") if print 
-    image2.write("imageis.jpg") if print
+    image1.write("tmp/imageshouldbe.jpg") if print 
+    image2.write("tmp/imageis.jpg") if print
     image1.difference(image2)[1].should be_within(0.0001).of(0)
   end
   
