@@ -16,6 +16,8 @@ module Pathby
   
   require File.dirname(__FILE__) + "/transformations.rb"
   
+  require File.dirname(__FILE__) + "/visualpath.rb"
+  
   class Savage::Directions::Point
     def top
         return Point.new(self.x,self.y)
