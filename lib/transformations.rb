@@ -117,8 +117,4 @@ module Pathby
   class Shape
     include Transformations
   end
-
-  class Group
-    include Transformations
-  end
 end

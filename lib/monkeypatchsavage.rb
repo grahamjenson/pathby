@@ -15,6 +15,15 @@ class Savage::Directions::PointTarget
     @absolute = true
     return Point.new(@target.x,@target.y)
   end
+
+  def absolute
+    return @absolute
+  end
+
+  def setAbsolute(ab)
+    @absolute = ab
+  end
+
 end
 
 class Savage::Directions::HorizontalTo
@@ -49,7 +58,7 @@ class Savage::Directions::QuadraticCurveTo
     return Point.new(@target.x,@target.y)
   end
 end
- 
+
 class Savage::Directions::CubicCurveTo
   def toAbsolute(fromPoint)
     if not @absolute
@@ -58,7 +67,7 @@ class Savage::Directions::CubicCurveTo
       @control.x += fromPoint.x
       @control.y += fromPoint.y
       if @control_1
-        @control_1.x += fromPoint.x 
+        @control_1.x += fromPoint.x
         @control_1.y += fromPoint.y
       end
     end
@@ -76,7 +85,7 @@ end
 
 class Savage::SubPath
   def toAbsolute(fp)
-    raise "Does not start with move command" unless @directions[0].kind_of? Savage::Directions::MoveTo  
+    raise "Does not start with move command" unless @directions[0].kind_of? Savage::Directions::MoveTo
     @directions.each do |d|
       fp = d.toAbsolute(fp)
     end
@@ -84,17 +93,17 @@ class Savage::SubPath
       return @directions[0].target.clone
     else
       return fp
-    end  
+    end
   end
 end
 
 class Savage::Path
   def toAbsolute
-    raise "Does not start with move command" unless self.directions[0].kind_of? Savage::Directions::MoveTo 
+    raise "Does not start with move command" unless self.directions[0].kind_of? Savage::Directions::MoveTo
     #raise "First move is not absolute" unless self.directions[0].absolute?
-    fromp = self.directions[0].target 
+    fromp = self.directions[0].target
+    self.directions[0].setAbsolute(true)
     for sp in @subpaths do
-      
       fromp = sp.toAbsolute(fromp)
     end
   end

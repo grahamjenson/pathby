@@ -5,14 +5,11 @@ module Pathby
 
   Point = Struct.new(:x,:y)
 
-  #P1 is intended to be a reference to the previous surve
-  Curve = Struct.new(:p1,:cp1,:cp2,:p2)
+  Curve = Struct.new(:points)
 
-  Path = Struct.new(:p1,:curves)
+  Path = Struct.new(:name,:curves)
 
-  Shape = Struct.new(:subpaths)
-
-  Group = Struct.new(:shapes)
+  Shape = Struct.new(:name, :paths)
 
   require File.dirname(__FILE__) + "/transformations.rb"
 
@@ -24,54 +21,47 @@ module Pathby
     end
   end
 
-  def self.convert2JSON(name, pathdatamap)
-    ret = Hash.new
-    ret[:name] = name
-    ret[:paths] = []
+  def self.createShape(pathdatamap,name=Time.new.to_i)
+    ret = Shape.new(name,[])
     for n, pathdata in pathdatamap do
-      pathhash = Hash.new
-      pathhash[:name] = n
-      pathhash[:curves] = []
-      pd = self.cshape(pathdata)
-      pd.rezero #stupid
-      for path in pd.subpaths do
-        pathhash[:curves].push(path.allpoints)
-      end
-      ret[:paths].push pathhash
+      path = self.createPath(pathdata,n)
+      ret.paths <<  path
     end
-
     return ret
   end
 
-  def self.cshape(pathdata)
+  def self.createPath(pathdata,name=Time.new.to_i)
     parsedpath = Savage::Parser.parse pathdata
+    #puts parsedpath.directions
     parsedpath.toAbsolute
-    shape = Shape.new([])
+    path = Path.new(name,[])
     for sp in parsedpath.subpaths do
       #get first Move direction point
-      np = Path.new(sp.directions[0].target.top,[])
-      fromp = np.p1
+
+      np = sp.directions[0].target.top
+      curve = Curve.new([np])
+      fromp = np
       for d in sp.directions[1..-1] do
-        prev = np.curves[-1]
+        prevcp = curve.points[-2]
         if  Savage::Directions::CubicCurveTo === d && d.control_1 then
-            np.curves << Curve.new(fromp, d.control_1.top, d.control_2.top, d.target.top)
+            curve.points += [d.control_1.top, d.control_2.top, d.target.top]
         elsif Savage::Directions::CubicCurveTo === d && !d.control_1 then
-            np.curves << Curve.new(fromp, prev.cp2.clone.reflect(fromp), d.control_2.top, d.target.top)
+            curve.points += [prevcp.clone.reflect(fromp), d.control_2.top, d.target.top]
         elsif  Savage::Directions::VerticalTo === d then
-            np.curves << Curve.new(fromp, fromp.clone, Point.new(fromp.x,d.target), Point.new(fromp.x,d.target))
+            curve.points += [fromp.clone, Point.new(fromp.x,d.target), Point.new(fromp.x,d.target)]
         elsif  Savage::Directions::HorizontalTo === d then
-            np.curves << Curve.new(fromp, fromp.clone, Point.new(d.target,fromp.y), Point.new(d.target,fromp.y))
+            curve.points += [fromp.clone, Point.new(d.target,fromp.y), Point.new(d.target,fromp.y)]
         elsif Savage::Directions::LineTo === d then
-            np.curves << Curve.new(fromp, fromp.clone, d.target.top, d.target.top)
+            curve.points += [fromp.clone, d.target.top, d.target.top]
         elsif Savage::Directions::ClosePath === d then
-            np.curves << Curve.new(fromp, fromp.clone, np.p1.clone , np.p1.clone)
+            curve.points += [fromp.clone, np.clone , np.clone]
         else raise "This class #{d.class} is not supported yet"
         end
-        fromp = np.curves[-1].p2
+        fromp = curve.points[-1]
       end
-      shape.subpaths << np
+      path.curves << curve
     end
-    return shape
+    return path
   end
 
   class Point
@@ -82,40 +72,39 @@ module Pathby
     def toPathData
       return "#{'%.2f' % x} #{'%.2f' % y}"
     end
+
   end
 
   class Curve
     def allpoints
-      return [cp1,cp2,p2]
+      a = []
+      a += points
+      return a
     end
 
     def toPathData
-      return "#{cp1.toPathData} #{cp2.toPathData} #{p2.toPathData}"
+      return "M #{points[0].toPathData} C #{points[1..-1].map(&:toPathData).join(" ")}"
     end
+
   end
 
   class Path
     def allpoints
-      points = [p1]
+      points = []
       curves.each {|c| points.concat(c.allpoints)}
       return points
     end
 
     def toPathData
-      return "M#{p1.toPathData} C#{curves.map(&:toPathData).join(" ")}"
+      return "#{curves.map(&:toPathData).join(" ")}"
     end
   end
 
   class Shape
     def allpoints
       points = []
-      subpaths.each {|path| points.concat(path.allpoints)}
+      paths.each {|path| points.concat(path.allpoints)}
       return points
-    end
-
-
-    def toPathData
-      return "#{subpaths.map(&:toPathData).join(" ")}"
     end
   end
 
