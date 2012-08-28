@@ -9,6 +9,8 @@ Gem::Specification.new do |s|
   s.files       = ["lib/transformations.rb",
                   "lib/measurements.rb",
                   "lib/monkeypatchsavage.rb",
-                  "lib/pathby.rb"]
+                  "lib/pathby.rb",
+                  "lib/visualpath.rb"]
+
   s.homepage    = 'http://maori.geek.nz/gems/pathby'
 end
