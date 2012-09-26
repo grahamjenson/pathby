@@ -90,31 +90,19 @@ module Pathby
       return self
     end
 
-  end
-
-
-  class Point
-    include Transformations
-
-    def applytransform(m)
-      v = Matrix[[self.x],[self.y],[1]]
-      v = m*v
-      self.x = v[0,0]
-      self.y = v[1,0]
-      return self
+    def scale_to(width,height,lock_aspect=true)
+      min,max = simplebbox
+      current_width = max.x - min.x
+      current_height = max.y - min.y
+      sx = width/current_width
+      sy = height/current_height
+      if lock_aspect
+        mins = [sx,sy].min
+        sx,sy = mins,mins
+      end
+      scale(sx,sy)
     end
 
   end
 
-  class Curve
-    include Transformations
-  end
-
-  class Path
-   include Transformations
-  end
-
-  class Shape
-    include Transformations
-  end
 end

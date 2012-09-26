@@ -5,7 +5,7 @@ describe "Pathby::Shape" do
   def shouldBeIdentity(opd,print=false)
     rpath = Pathby.createPath(opd)
     image1 = createImageFromPath(opd)
-    puts "#{rpath.toPathData} \ncompared \n #{opd}"
+    #puts "#{rpath.toPathData} \ncompared \n #{opd}"
     image2 = createImageFromPath(rpath.toPathData)
     image1.write("tmp/imageshouldbe.jpg") if print
     image2.write("tmp/imageis.jpg") if print
@@ -60,7 +60,7 @@ describe "Pathby::Shape" do
 
   it "should work with relative move path at the begining" do
     white = "m200 200 -26.38 2-6.81 2.87 2.5 26.94 4.75 22.28 12.16 5.25 14.28 2.31 l200 200"
-    shouldBeIdentity(white,true)
+    shouldBeIdentity(white)
   end
 
   it "should work for real examples" do
@@ -99,13 +99,27 @@ describe "Pathby::Shape" do
     points = rpath.simplebbox
     points[0].should eq Point.new(0,0)
   end
+
+    it "should work with relative move path at the begining" do
+    white = "m200 200 -26.38 2-6.81 2.87 2.5 26.94 4.75 22.28 12.16 5.25 14.28 2.31 l200 200"
+    rpath = Pathby.createPath(white)
+    rpath.rezero
+    rpath.scale_to(100,100)
+    min,max = rpath.simplebbox
+    puts max
+    max.y.should eq 100
+  end
+
 end
 
 describe "Pathby::Shape" do
   it "should return nice json" do
-    puts Pathby.createShape( {:hair => "M0 50C0 0 100 0 100 50", :glasses => "M100,200 C100,100 250,100 250,200 S400,300 400,200 M 100,100"},:face).inspect
+    Pathby.createShape( [ "M0 50C0 0 100 0 100 50",  "M100,200 C100,100 250,100 250,200 S400,300 400,200 M 100,100"]).inspect
   end
 end
+
+
+
 
 
 

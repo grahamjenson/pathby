@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
                   "lib/measurements.rb",
                   "lib/monkeypatchsavage.rb",
                   "lib/pathby.rb",
-                  "lib/visualpath.rb"]
+                  ]
 
   s.homepage    = 'http://maori.geek.nz/gems/pathby'
 end
