@@ -84,7 +84,7 @@ module Pathby
   end
 
   def self.createCurves(pathdata)
-        parsedpath = Savage::Parser.parse pathdata
+    parsedpath = Savage::Parser.parse pathdata
     curves = []
     #puts parsedpath.directions
     parsedpath.toAbsolute
